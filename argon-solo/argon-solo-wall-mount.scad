@@ -61,16 +61,16 @@ module pole () {
 		cube([thickness, thickness, foot_height + gap_height]);
 		translate([0,-thickness,-thickness])
 			cube([thickness, thickness, foot_height + height + 2*thickness]);
-		translate([0,0,foot_height + height + thickness/2])
+		#translate([0,0,foot_height + height + thickness])
 			rotate([0,90,0])
-				cylinder(thickness, thickness/2, thickness/2);
+				cylinder(thickness, thickness, thickness);
 }
 
 module support () {
 	union () {
 		linear_extrude(thickness)
 			plate_2d();
-		cube([gap, thickness, foot_height + thickness*2]);
+		cube([gap, thickness, foot_height + thickness*3]);
 		translate([0,0,thickness])
 			pole();
 		translate([thickness,0,0])
