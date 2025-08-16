@@ -30,27 +30,23 @@ module screw_hole () {
 }
 
 module plate_2d () {
-	// must cover all legs.
+	// must touch all legs.
 	difference() {
-		translate([rounder,rounder,0])
-			minkowski() {
-				square([gap - 2*rounder, length / 1.2]);
-				circle(rounder);
-			}
+		square([gap, length]);
 		translate([(gap - screw_separation)/2,length/1.5 - 10,0])
 			union() {
 				screw_hole();
 				translate([screw_separation,0,0]) screw_hole();				
 			}
-		translate([51,112,0])
-		  grid_copies(foot_dia/2, n=[9,2])
-				square(foot_dia/2 - rounder, center=true);
-		translate([51,91,0])
-		  grid_copies(foot_dia/2, n=[5,2])
-				square(foot_dia/2 - rounder, center=true);
+		translate([51,120,0])
+		  grid_copies(13, n=[6,3])
+				square(13 - rounder, center=true);
+		translate([51,87.5,0])
+		  grid_copies(13, n=[4,2])
+				square(13 - rounder, center=true);
 		translate([51,42,0])
-		  grid_copies(foot_dia/2, n=[9,8])
-				square(foot_dia/2 - rounder, center=true);
+		  grid_copies(13, n=[6,5])
+				square(13 - rounder, center=true);
 	}
 }
 
@@ -61,25 +57,69 @@ module pole () {
 		cube([thickness, thickness, foot_height + gap_height]);
 		translate([0,-thickness,-thickness])
 			cube([thickness, thickness, foot_height + height + 2*thickness]);
-		#translate([0,0,foot_height + height + thickness])
+		translate([0,0,foot_height + height + thickness])
 			rotate([0,90,0])
 				cylinder(thickness, thickness, thickness);
 }
 
-module support () {
+module bottom_support () {
+	union () {
+		translate([0,0,thickness])
+			pole();
+		translate([thickness,0,0])
+			cylinder(foot_height + 3*thickness, thickness, thickness);
+		translate([thickness,0,foot_height + 3*thickness])
+			sphere(thickness);
+		translate([gap - thickness,0,thickness])
+			pole();
+		translate([gap - thickness,0,0])
+			cylinder(foot_height + 3*thickness, thickness, thickness);
+		translate([gap - thickness,0,foot_height + 3*thickness])
+			sphere(thickness);
+	}
+}
+
+module top_pole() {
+	translate([0,0,thickness])
+		union() {
+			translate([0,-thickness,-thickness])
+				cube([thickness, thickness, foot_height + height + 2*thickness]);
+			translate([0,0,foot_height + height + thickness])
+				rotate([0,90,0])
+					cylinder(thickness, thickness, thickness);
+		}
+}
+
+module top_support () {
+	union() {
+		top_pole();
+		translate([thickness,-thickness,0])
+			cube(thickness);
+		translate([thickness,0,thickness])
+			rotate([90,0,0])
+				cylinder(thickness, thickness, thickness);
+	}
+	translate([gap - thickness,0,0])
+		union() {
+			top_pole();
+			translate([-thickness,-thickness,0])
+				cube(thickness);
+			translate([0,0,thickness])
+				rotate([90,0,0])
+					cylinder(thickness, thickness, thickness);
+		}
+}
+
+module holder () {
 	union () {
 		linear_extrude(thickness)
 			plate_2d();
 		cube([gap, thickness, foot_height + thickness*3]);
-		translate([0,0,thickness])
-			pole();
-		translate([thickness,0,0])
-			cylinder(2*thickness, thickness, thickness);
-		translate([gap - thickness,0,thickness])
-			pole();
-		translate([gap - thickness,0,0])
-			cylinder(2*thickness, thickness, thickness);
+	  bottom_support();
+		translate([gap,length,0])
+			rotate([0,0,180])
+			  top_support();
 	}
 }
 
-support();
+holder();
