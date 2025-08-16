@@ -1,6 +1,12 @@
 $fn = 32;
 
-thickness = 2.65;
+use <../lib/bosl2-0-716/std.scad>
+
+screw_separation = 73;
+screw_head = 9;  // 1 mm slack
+screw_dia = 4;  // 1 mm slack
+screw_protrution = 5.5;
+
 length = 147;
 height = 31.5;
 gap = 101.5;
@@ -8,40 +14,64 @@ gap_height = 24;
 
 corner_radius = 18.5;
 foot_dia = 18.5;
+foot_height = 3.6;
 
+thickness = 2.65;
+rounder = 2;
 
-module plate_2d () {
-	// Only a slim lip for now to test support
-	difference () {
-		union () {
-			square([gap, foot_dia]);
-			translate([foot_dia,foot_dia,0])
-				circle(foot_dia - 2*thickness);
-			translate([foot_dia,thickness,0])
-				square([gap - 2*foot_dia, length / 2]);
-		}
-		translate([0,15,0])
-			circle(d=foot_dia+2);
+module screw_hole () {
+	union() {
+		circle(d=screw_head);
+		translate([0,screw_head/2,0])
+		  square(screw_dia, center=true);
+		translate([0,screw_head/2 + screw_dia/2,0])
+		  circle(d=screw_dia);
 	}
 }
 
-plate_2d();
+module plate_2d () {
+	// must cover all legs.
+	difference() {
+		translate([rounder,rounder,0])
+			minkowski() {
+				square([gap - 2*rounder, length / 1.2]);
+				circle(rounder);
+			}
+		translate([(gap - screw_separation)/2,length/1.5 - 10,0])
+			union() {
+				screw_hole();
+				translate([screw_separation,0,0]) screw_hole();				
+			}
+		translate([51,112,0])
+		  grid_copies(foot_dia/2, n=[9,2])
+				square(foot_dia/2 - rounder, center=true);
+		translate([51,91,0])
+		  grid_copies(foot_dia/2, n=[5,2])
+				square(foot_dia/2 - rounder, center=true);
+		translate([51,42,0])
+		  grid_copies(foot_dia/2, n=[9,8])
+				square(foot_dia/2 - rounder, center=true);
+	}
+}
+
+*plate_2d();
+
 
 module pole () {
-		cube([thickness, thickness, gap_height]);
+		cube([thickness, thickness, foot_height + gap_height]);
 		translate([0,-thickness,-thickness])
-			cube([thickness, thickness, height + 2*thickness]);
-		translate([0,0,height + thickness/2])
+			cube([thickness, thickness, foot_height + height + 2*thickness]);
+		translate([0,0,foot_height + height + thickness/2])
 			rotate([0,90,0])
 				cylinder(thickness, thickness/2, thickness/2);
 }
 
 module support () {
 	union () {
-		#linear_extrude(thickness)
+		linear_extrude(thickness)
 			plate_2d();
-		%cube([gap, thickness, thickness*2]);
-		%translate([0,0,thickness])
+		cube([gap, thickness, foot_height + thickness*2]);
+		translate([0,0,thickness])
 			pole();
 		translate([thickness,0,0])
 			cylinder(2*thickness, thickness, thickness);
@@ -52,4 +82,4 @@ module support () {
 	}
 }
 
-*support();
+support();
