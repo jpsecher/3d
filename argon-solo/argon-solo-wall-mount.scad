@@ -1,4 +1,4 @@
-$fn = 32;
+$fn = 64;
 
 use <../lib/bosl2-0-716/std.scad>
 
@@ -79,35 +79,40 @@ module bottom_support () {
 	}
 }
 
-module top_pole() {
-	translate([0,0,thickness])
-		union() {
-			translate([0,-thickness,-thickness])
-				cube([thickness, thickness, foot_height + height + 2*thickness]);
-			translate([0,0,foot_height + height + thickness])
-				rotate([0,90,0])
-					cylinder(thickness, thickness, thickness);
+module top_2d () {
+	union() {
+		difference() {
+			square([gap, foot_height + height + 2*thickness]);
+			intersection() {
+				translate([thickness,thickness,0])
+					square([gap - 2 * thickness, foot_height + height]);
+				translate([gap / 2 + 9, 12.5, 0])
+					rotate(45)
+					  grid_copies(13, n=[10,10])
+							square(13 - rounder);
+			}
 		}
+	}
 }
 
-module top_support () {
+*top_2d();
+
+module top_support_full () {
 	union() {
-		top_pole();
-		translate([thickness,-thickness,0])
-			cube(thickness);
-		translate([thickness,0,thickness])
-			rotate([90,0,0])
-				cylinder(thickness, thickness, thickness);
+		translate([0,0,thickness])
+			union() {
+				translate([0,0,-thickness])
+					rotate([90,0,0])
+						linear_extrude(thickness)
+							top_2d();
+
+				*translate([0,-thickness,-thickness])
+					cube([gap, thickness, foot_height + height + 2*thickness]);
+				translate([0,0,foot_height + height + thickness])
+					rotate([0,90,0])
+						cylinder(gap, thickness, thickness);
+			}
 	}
-	translate([gap - thickness,0,0])
-		union() {
-			top_pole();
-			translate([-thickness,-thickness,0])
-				cube(thickness);
-			translate([0,0,thickness])
-				rotate([90,0,0])
-					cylinder(thickness, thickness, thickness);
-		}
 }
 
 module holder () {
@@ -118,7 +123,7 @@ module holder () {
 	  bottom_support();
 		translate([gap,length,0])
 			rotate([0,0,180])
-			  top_support();
+			  top_support_full();
 	}
 }
 
