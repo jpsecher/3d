@@ -27,3 +27,5 @@ wedge_front_width = (front_width - tray_width) / 2;
 module left_wedge () {
 	
 }
+
+left_wedge();
